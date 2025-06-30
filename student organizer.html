@@ -1156,16 +1156,44 @@
                 tasks: tasks,
                 files: files
             };
-            window.studentOrganizerData = data;
+            try {
+                localStorage.setItem('studentOrganizerData', JSON.stringify(data));
+            } catch (error) {
+                console.error('Error saving data:', error);
+                // Fallback to session storage if localStorage fails
+                try {
+                    sessionStorage.setItem('studentOrganizerData', JSON.stringify(data));
+                } catch (fallbackError) {
+                    console.error('Error saving to session storage:', fallbackError);
+                }
+            }
         }
 
         function loadData() {
-            if (window.studentOrganizerData) {
-                const data = window.studentOrganizerData;
-                studyGoals = data.studyGoals || [];
-                assignments = data.assignments || [];
-                tasks = data.tasks || [];
-                files = data.files || [];
+            try {
+                const savedData = localStorage.getItem('studentOrganizerData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    studyGoals = data.studyGoals || [];
+                    assignments = data.assignments || [];
+                    tasks = data.tasks || [];
+                    files = data.files || [];
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                // Try session storage as fallback
+                try {
+                    const savedData = sessionStorage.getItem('studentOrganizerData');
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        studyGoals = data.studyGoals || [];
+                        assignments = data.assignments || [];
+                        tasks = data.tasks || [];
+                        files = data.files || [];
+                    }
+                } catch (fallbackError) {
+                    console.error('Error loading from session storage:', fallbackError);
+                }
             }
             displayGoals();
             displayAssignments();
@@ -1189,8 +1217,13 @@
                     progressChart = null;
                 }
                 
-                // Save empty data
-                saveData();
+                // Clear localStorage and sessionStorage
+                try {
+                    localStorage.removeItem('studentOrganizerData');
+                    sessionStorage.removeItem('studentOrganizerData');
+                } catch (error) {
+                    console.error('Error clearing storage:', error);
+                }
                 
                 // Update all displays
                 displayGoals();
@@ -1218,9 +1251,14 @@
         function closeModal() {
             document.getElementById('goalModal').style.display = 'none';
         }
+        
         window.onclick = function(event) {
             const modal = document.getElementById('goalModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
-            }}
+            }
+        };
+    </script>
+</body>
+</html>
         
